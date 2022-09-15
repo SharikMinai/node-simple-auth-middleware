@@ -13,6 +13,13 @@ const readFile = (path) => {
     });
 };
 
+const getKeysFromFile = () => {
+    return readFile(KEY_FILE)
+        .then(data => {
+            return compact(data.split(os.EOL));
+        })
+};
+
 
 
 
@@ -29,5 +36,6 @@ const removeFile = (path) => {
 module.exports = {
     readFile,
     removeFile,
+    getKeysFromFile,
   
 };
