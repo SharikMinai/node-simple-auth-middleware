@@ -20,7 +20,19 @@ const getKeysFromFile = () => {
         })
 };
 
+const generateKeysFile = (data) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(KEY_FILE, data || '', 'utf8', (err => {
+            if(err) return reject();
+            else resolve();
+        }))
+    })
+};
 
+
+const clearKeysFile = () => {
+    return removeFile(KEY_FILE);
+};
 
 
 const removeFile = (path) => {
@@ -37,5 +49,6 @@ module.exports = {
     readFile,
     removeFile,
     getKeysFromFile,
-  
+    clearKeysFile,
+    generateKeysFile
 };
