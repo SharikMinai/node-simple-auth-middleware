@@ -62,4 +62,85 @@ describe('express_authentication_middleware_basics', () => {
     });
 
 
+    it('Should return the API Key back in response', done => {
+        let response;
+        chai.request(server)
+            .get('/auth')
+            .then(res => {
+                response = res;
+                return utils.getKeysFromFile();
+            })
+            .then(keys => {
+                keys[0].should.equal(response.body.apiKey);
+                done();
+            })
+    });
+
+    it('Should send a 401 if the x-api-key header is not present', done => {
+        chai.request(server)
+            .get('/tasks')
+            .then(response => {
+                response.status.should.equal(401);
+                next.callCount.should.eql(0);
+                done();
+            })
+    });
+
+    it('Should send a 401 if the x-api-key is invalid', done => {
+        chai.request(server)
+            .get('/tasks')
+            .set('x-api-key', 'INVALID_KEY')
+            .then(response => {
+                response.status.should.equal(401);
+                done();
+            })
+    });
+
+
+    it('Should validate header for protected routes', done => {
+        agent = chai.request.agent(server);
+
+        agent
+            .get('/auth')
+            .then(({body: {apiKey}}) => {
+                return Promise.all([
+                    agent
+                        .get('/tasks')
+                        .set('x-api-key', apiKey),
+                    agent
+                        .post('/tasks')
+                        .set('x-api-key', apiKey)
+                ])
+            })
+            .then(responseList => {
+                responseList.forEach(response => {
+                    response.status.should.match(/^20[0|1]/);
+                });
+                done();
+            })
+    });
+
+    it('Should not require auth headers for unprotected routes', done => {
+        agent = chai.request.agent(server);
+        Promise
+            .mapSeries([
+                agent
+                    .get('/tasks/3'),
+                agent
+                    .get('/'),
+                agent
+                    .post('/tasks')
+            ], res => res)
+            .then(responseList => {
+                responseList.forEach((response, i) => {
+                    if (i !== 2) {
+                        response.status.should.match(/^20[0|1]/);
+                    } else {
+                        response.status.should.eql(401);
+                    }
+                });
+                done();
+            })
+
+    });
 });
