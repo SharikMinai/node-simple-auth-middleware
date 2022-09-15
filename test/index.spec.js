@@ -120,5 +120,27 @@ describe('express_authentication_middleware_basics', () => {
             })
     });
 
- 
+    it('Should not require auth headers for unprotected routes', done => {
+        agent = chai.request.agent(server);
+        Promise
+            .mapSeries([
+                agent
+                    .get('/tasks/3'),
+                agent
+                    .get('/'),
+                agent
+                    .post('/tasks')
+            ], res => res)
+            .then(responseList => {
+                responseList.forEach((response, i) => {
+                    if (i !== 2) {
+                        response.status.should.match(/^20[0|1]/);
+                    } else {
+                        response.status.should.eql(401);
+                    }
+                });
+                done();
+            })
+
+    });
 });
