@@ -15,7 +15,19 @@ const readFile = (path) => {
 
 
 
+
+const removeFile = (path) => {
+    return new Promise((resolve, reject) => {
+        fs.unlink(path, err => {
+            if(err && err.code === 'ENOENT') resolve();
+            else if (err) reject(err);
+            else resolve()
+        });
+    })
+};
+
 module.exports = {
     readFile,
-   
+    removeFile,
+  
 };
